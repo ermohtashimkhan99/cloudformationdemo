@@ -1,0 +1,78 @@
+{
+    "Description": "Deply Medeiawiki AMI using cloudfromation",
+    "Mappings": {
+        "AmiMap": {
+          "ServerType01": {
+            "id": "ami-02f5e9c97012d38b6"
+          }
+        },
+        "KeyPair": {
+          "Key01": {
+            "key": "linuxami"
+          }
+        }
+      },
+    "Resources": {
+      "SecurityGroupDemoSvrTraffic": {
+        "Type": "AWS::EC2::SecurityGroup",
+        "Properties": {
+          "GroupName": "MySecurityGRP",
+          "SecurityGroupIngress": [
+            {
+              "IpProtocol": "tcp",
+              "FromPort": 80,
+              "ToPort": 80,
+              "CidrIp": "0.0.0.0/0",
+              "Description": "for http"
+            }
+          ],
+          "GroupDescription": "Security Group for demo Mediawiki server",
+          "VpcId": "vpc-1685c56e"
+        }
+      },
+      "EC2InstanceDemoSvr": {
+        "Type": "AWS::EC2::Instance",
+        "Properties": {
+          "AvailabilityZone": "us-west-2a",
+          "BlockDeviceMappings": [
+            {
+              "DeviceName": "/dev/sda1",
+              "Ebs": {
+                "DeleteOnTermination": "true",
+                "VolumeSize": "11",
+                "VolumeType": "gp2"
+              }
+            }
+          ],
+          "ImageId": {
+            "Fn::FindInMap": [
+                "AmiMap",
+                "ServerType01",
+                "id"
+              ]
+          },
+          "InstanceType": "t2.micro",
+          "KeyName": {
+            "Fn::FindInMap": [
+                "KeyPair",
+                "Key01",
+                "key"
+              ]
+          },
+          "NetworkInterfaces": [
+            {
+              "Description": "Primary network interface",
+              "DeviceIndex": "0",
+              "SubnetId": "subnet-8e41bec4",
+              "PrivateIpAddress": "172.31.32.4",
+              "GroupSet": [
+                {
+                  "Ref": "SecurityGroupDemoSvrTraffic"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
